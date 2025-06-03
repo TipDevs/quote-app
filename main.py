@@ -2,6 +2,7 @@ from flask import Flask,url_for,jsonify,request,render_template,session,redirect
 from flask_sqlalchemy import SQLAlchemy
 import json, os
 import JsonLoader as jl
+import pickle_loader as pl
 import gemini
 from flask_cors import CORS
 import PasswordEncoder as pe
@@ -12,10 +13,10 @@ app.secret_key = '1ekfr40t040rto'
 
 app.config["SQLALCHEMY_DATABASE_URI"]="sqlite:///database.db"
 CORS(app)
-file = "data.json"
+file = "data.dat"
 if not os.path.exists(file):
-  jl.save_json({}, file)
-data = jl.load_json(file)
+  pl.save_pickle({}, file)
+data = pl.load_pickle(file)
 
 db = SQLAlchemy(app)
 
@@ -123,7 +124,7 @@ def contact_form():
     "email":email,
     "phone":phone,
     "issue":issue, 
-    "data":datetime.utcnow
+    "data":time.asctime(time.gmtime())
     }
   try:
     jl.save_json(data , file)
@@ -234,6 +235,13 @@ def  admin_logout():
 def search_user():
   username = request.args.get("usernames")
   return username
+  
+@app.route("/feedbacks")
+def feedback():
+  global data
+  print(data)
+  data_ = data
+  return render_template("/admin/feedback.html", data=data_)
   
 with app.app_context():
   db.create_all()
